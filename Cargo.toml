@@ -1,0 +1,25 @@
+[package]
+name = "ice"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "ice"
+path = "src/ice.rs"
+
+[[bench]]
+name = "ice_bench"
+harness = false
+
+[[bench]]
+name = "icefast_bench"
+harness = false
+
+[dependencies]
+bencher = "0.1.5"
+
+[profile.release]
+# debug = true
+lto = true
+codegen-units = 1
+opt-level = 3
