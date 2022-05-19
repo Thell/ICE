@@ -17,9 +17,10 @@ harness = false
 
 [dependencies]
 bencher = "0.1.5"
+rayon = "1.5.2"
 
 [profile.release]
-# debug = true
+debug = true
 lto = true
 codegen-units = 1
 opt-level = 3

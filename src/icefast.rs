@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 /* Structure of a single round subkey */
 #[derive(Copy, Clone, Debug)]
 pub struct IceSubkey {
@@ -134,10 +136,11 @@ impl IceKey {
         }
     }
 
-    /*
-     * Create a new ICE key.
-     */
-    pub fn new(level: usize) -> Self {
+    /// Create a new ICE
+    /// # Arguments
+    /// * `level` - The level of the ICE (0-2)
+    /// * `key` - The key to use
+    pub fn new(level: usize, key: &[u8]) -> Self {
         let mut ik = IceKey {
             key: IceKeyStruct {
                 size: 0,
@@ -157,26 +160,26 @@ impl IceKey {
             // Thin-ICE
             ik.key.size = 1;
             ik.key.rounds = 8;
+            assert!(key.len() == 8);
         } else {
             ik.key.size = level;
             ik.key.rounds = level * 16;
+            assert!(key.len() == level * 8);
         }
 
         ik.key.keysched = vec![IceSubkey { val: [0; 3] }; ik.key.rounds];
+        ik.key_set(key);
         ik
     }
 
     /*
      * The single round ICE f function.
      */
-    pub fn ice_f_ess(&self, p: u32, sk: &IceSubkey) -> (u32,u32) {
-        /* Expanded 40-bit values */
-        /* 20-bits on the Left half expansion */
+    fn ice_f_ess(&self, p: u32, sk: &IceSubkey) -> (usize, usize, usize, usize) {
+        /* Expanded 2x20-bit values */
+        let tr = p & 0x3ff | p << 2 & 0xffc00;
         let tl = p >> 16 & 0x3ff | p.rotate_left(18) & 0xffc00;
-        /* 20-bits on the Right half expansion */
-        let tr = (p & 0x3ff) | ((p << 2) & 0xffc00);
 
-        /* Salted expanded 40-bit values */
         /* Perform the salt permutation */
         let mut al = sk.val[2] & (tl ^ tr);
         let mut ar = al ^ tr;
@@ -185,87 +188,196 @@ impl IceKey {
         /* XOR with the subkey */
         al ^= sk.val[0];
         ar ^= sk.val[1];
-        (al, ar)
+
+        (
+            (al as usize >> 10) & 0x3ff,
+            al as usize & 0x3ff,
+            (ar as usize >> 10) & 0x3ff,
+            ar as usize & 0x3ff,
+        )
     }
 
-    pub fn ice_f(&self, p: u32, sk: &IceSubkey) -> u32 {
-        /* Expand, salt and split to 40-bit values */
-        let (al, ar) = self.ice_f_ess(p, sk);
+    fn ice_f(&self, p: u32, sk: &IceSubkey) -> u32 {
+        /* Expand, salt and split to sbox index values */
+        let (sb0, sb1, sb2, sb3) = self.ice_f_ess(p, sk);
 
         /* S-box lookup and permutation */
-        // 20-bits on the expansions >> 10 is guaranteed to be in the range
-        // 0..1023 but these are 32-bit values so the compiler can't tell
-        // when all we do is shift and will do a bounds check.
-        // Masking the high bits is a workaround.
-        // It'd be nice to use intrinsics here but they're not as performant.
-        // self.sbox[0][al.bextr(10, 10) as usize]
-        //     | self.sbox[1][al as usize & 0x3ff]
-        //     | self.sbox[2][ar.bextr(10, 10) as usize]
-        //     | self.sbox[3][ar as usize & 0x3ff]
-        self.sbox[0][(al as usize >> 10) & 0x3ff]
-            | self.sbox[1][al as usize & 0x3ff]
-            | self.sbox[2][(ar as usize >> 10) & 0x3ff]
-            | self.sbox[3][ar as usize & 0x3ff]
+        self.sbox[0][sb0] | self.sbox[1][sb1] | self.sbox[2][sb2] | self.sbox[3][sb3]
     }
 
     /// Encrypt data in-place.
-    /// Data must be a multiple of 8 bytes.
     pub fn encrypt(&self, data: &mut [u8]) {
         assert!(data.len() % 8 == 0, "Data must be a multiple of 8 bytes");
 
-        data.chunks_exact_mut(8).for_each(|chunk| {
-            let mut l: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
-            let mut r: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
-    
+        data.chunks_exact_mut(16).for_each(|chunk| {
+            // compiler vectorizes with the writes to the chunk
+            let mut l1: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+            let mut r1: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+            let mut l2: u32 = u32::from_be_bytes(chunk[8..12].try_into().unwrap());
+            let mut r2: u32 = u32::from_be_bytes(chunk[12..16].try_into().unwrap());
+
+            // ice_f_ess can be vectorized but the sbox lookup is not
+            // and without inline(never) the compiler will not vectorize
+            // and takes roughly the same time as the plain paired loop
             self.key.keysched.chunks_exact(2).for_each(|pair| {
-                l ^= self.ice_f(r, &pair[0]);
-                r ^= self.ice_f(l, &pair[1]);
+                l1 ^= self.ice_f(r1, &pair[0]);
+                l2 ^= self.ice_f(r2, &pair[0]);
+                r1 ^= self.ice_f(l1, &pair[1]);
+                r2 ^= self.ice_f(l2, &pair[1]);
             });
-    
-            chunk[0..4].copy_from_slice(&r.to_be_bytes()[..]);
-            chunk[4..8].copy_from_slice(&l.to_be_bytes()[..]);
-        })
+
+            chunk[0..4].copy_from_slice(&r1.to_be_bytes()[..]);
+            chunk[4..8].copy_from_slice(&l1.to_be_bytes()[..]);
+            chunk[8..12].copy_from_slice(&r2.to_be_bytes()[..]);
+            chunk[12..16].copy_from_slice(&l2.to_be_bytes()[..]);
+        });
+
+        data.chunks_exact_mut(16)
+            .into_remainder()
+            .chunks_exact_mut(8)
+            .for_each(|chunk| {
+                let mut l: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+                let mut r: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+
+                self.key.keysched.chunks_exact(2).for_each(|pair| {
+                    l ^= self.ice_f(r, &pair[0]);
+                    r ^= self.ice_f(l, &pair[1]);
+                });
+
+                chunk[0..4].copy_from_slice(&r.to_be_bytes()[..]);
+                chunk[4..8].copy_from_slice(&l.to_be_bytes()[..]);
+            })
     }
 
-    /*
-     * Decrypt a block of 8 bytes of data with the given ICE key.
-     */
+    /// Encrypt data in-place.
+    pub fn encrypt_par(&self, data: &mut [u8]) {
+        assert!(data.len() % 8 == 0, "Data must be a multiple of 8 bytes");
+
+        data.par_chunks_exact_mut(16).for_each(|chunk| {
+            // compiler vectorizes with the writes to the chunk
+            let mut l1: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+            let mut r1: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+            let mut l2: u32 = u32::from_be_bytes(chunk[8..12].try_into().unwrap());
+            let mut r2: u32 = u32::from_be_bytes(chunk[12..16].try_into().unwrap());
+
+            // ice_f_ess can be vectorized but the sbox lookup is not
+            // and without inline(never) the compiler will not vectorize
+            // and takes roughly the same time as the plain paired loop
+            self.key.keysched.chunks_exact(2).for_each(|pair| {
+                l1 ^= self.ice_f(r1, &pair[0]);
+                l2 ^= self.ice_f(r2, &pair[0]);
+                r1 ^= self.ice_f(l1, &pair[1]);
+                r2 ^= self.ice_f(l2, &pair[1]);
+            });
+
+            chunk[0..4].copy_from_slice(&r1.to_be_bytes()[..]);
+            chunk[4..8].copy_from_slice(&l1.to_be_bytes()[..]);
+            chunk[8..12].copy_from_slice(&r2.to_be_bytes()[..]);
+            chunk[12..16].copy_from_slice(&l2.to_be_bytes()[..]);
+        });
+
+        data.par_chunks_exact_mut(16)
+            .into_remainder()
+            .chunks_exact_mut(8)
+            .for_each(|chunk| {
+                let mut l: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+                let mut r: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+
+                self.key.keysched.chunks_exact(2).for_each(|pair| {
+                    l ^= self.ice_f(r, &pair[0]);
+                    r ^= self.ice_f(l, &pair[1]);
+                });
+
+                chunk[0..4].copy_from_slice(&r.to_be_bytes()[..]);
+                chunk[4..8].copy_from_slice(&l.to_be_bytes()[..]);
+            })
+    }
+
+    /// Decrypt data in-place.
     pub fn decrypt(&self, data: &mut [u8]) {
         assert!(data.len() % 8 == 0, "Data must be a multiple of 8 bytes");
 
-        data.chunks_exact_mut(8).for_each(|chunk| {
-            let mut l: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
-            let mut r: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
-    
+        data.chunks_exact_mut(16).for_each(|chunk| {
+            // compiler vectorizes with the writes to the chunk
+            let mut l1: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+            let mut r1: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+            let mut l2: u32 = u32::from_be_bytes(chunk[8..12].try_into().unwrap());
+            let mut r2: u32 = u32::from_be_bytes(chunk[12..16].try_into().unwrap());
+
+            // ice_f_ess can be vectorized but the sbox lookup is not
+            // and without inline(never) the compiler will not vectorize
+            // and takes roughly the same time as the plain paired loop
             self.key.keysched.chunks_exact(2).rev().for_each(|pair| {
-                l ^= self.ice_f(r, &pair[1]);
-                r ^= self.ice_f(l, &pair[0]);
+                l1 ^= self.ice_f(r1, &pair[1]);
+                l2 ^= self.ice_f(r2, &pair[1]);
+                r1 ^= self.ice_f(l1, &pair[0]);
+                r2 ^= self.ice_f(l2, &pair[0]);
             });
-            // let mut i = (self.key.rounds as isize) - 1;
-            // loop {
-            //     if i <= 0 {
-            //         break;
-            //     }
-            //     l ^= self.ice_f(r, &self.key.keysched[i as usize]);
-            //     r ^= self.ice_f(l, &self.key.keysched[i as usize - 1]);
 
-            //     i -= 2;
-            // }
+            chunk[0..4].copy_from_slice(&r1.to_be_bytes()[..]);
+            chunk[4..8].copy_from_slice(&l1.to_be_bytes()[..]);
+            chunk[8..12].copy_from_slice(&r2.to_be_bytes()[..]);
+            chunk[12..16].copy_from_slice(&l2.to_be_bytes()[..]);
+        });
 
-            chunk[0..4].copy_from_slice(&r.to_be_bytes()[..]);
-            chunk[4..8].copy_from_slice(&l.to_be_bytes()[..]);
-        })
+        data.chunks_exact_mut(16)
+            .into_remainder()
+            .chunks_exact_mut(8)
+            .for_each(|chunk| {
+                let mut l: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+                let mut r: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
 
-        // let mut l: u32 = u32::from_be_bytes(ctext[0..4].try_into().unwrap());
-        // let mut r: u32 = u32::from_be_bytes(ctext[4..8].try_into().unwrap());
+                self.key.keysched.chunks_exact(2).rev().for_each(|pair| {
+                    l ^= self.ice_f(r, &pair[1]);
+                    r ^= self.ice_f(l, &pair[0]);
+                });
 
-        // for i in (0..self.key.rounds).rev().step_by(2) {
-        //     l ^= self.ice_f(r, &self.key.keysched[i as usize]);
-        //     r ^= self.ice_f(l, &self.key.keysched[i as usize - 1]);
-        // }
+                chunk[0..4].copy_from_slice(&r.to_be_bytes()[..]);
+                chunk[4..8].copy_from_slice(&l.to_be_bytes()[..]);
+            })
+    }
 
-        // ptext[0..4].copy_from_slice(&r.to_be_bytes()[..]);
-        // ptext[4..8].copy_from_slice(&l.to_be_bytes()[..]);
+    pub fn decrypt_par(&self, data: &mut [u8]) {
+        assert!(data.len() % 8 == 0, "Data must be a multiple of 8 bytes");
+
+        data.par_chunks_exact_mut(16).for_each(|chunk| {
+            // compiler vectorizes with the writes to the chunk
+            let mut l1: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+            let mut r1: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+            let mut l2: u32 = u32::from_be_bytes(chunk[8..12].try_into().unwrap());
+            let mut r2: u32 = u32::from_be_bytes(chunk[12..16].try_into().unwrap());
+
+            // ice_f_ess can be vectorized but the sbox lookup is not
+            // and without inline(never) the compiler will not vectorize
+            // and takes roughly the same time as the plain paired loop
+            self.key.keysched.chunks_exact(2).rev().for_each(|pair| {
+                l1 ^= self.ice_f(r1, &pair[1]);
+                l2 ^= self.ice_f(r2, &pair[1]);
+                r1 ^= self.ice_f(l1, &pair[0]);
+                r2 ^= self.ice_f(l2, &pair[0]);
+            });
+
+            chunk[0..4].copy_from_slice(&r1.to_be_bytes()[..]);
+            chunk[4..8].copy_from_slice(&l1.to_be_bytes()[..]);
+            chunk[8..12].copy_from_slice(&r2.to_be_bytes()[..]);
+            chunk[12..16].copy_from_slice(&l2.to_be_bytes()[..]);
+        });
+
+        data.par_chunks_exact_mut(16)
+            .into_remainder()
+            .chunks_exact_mut(8)
+            .for_each(|chunk| {
+                let mut l: u32 = u32::from_be_bytes(chunk[0..4].try_into().unwrap());
+                let mut r: u32 = u32::from_be_bytes(chunk[4..8].try_into().unwrap());
+
+                self.key.keysched.chunks_exact(2).rev().for_each(|pair| {
+                    l ^= self.ice_f(r, &pair[1]);
+                    r ^= self.ice_f(l, &pair[0]);
+                });
+
+                chunk[0..4].copy_from_slice(&r.to_be_bytes()[..]);
+                chunk[4..8].copy_from_slice(&l.to_be_bytes()[..]);
+            })
     }
 
     /*
@@ -328,8 +440,8 @@ impl IceKey {
     /*
      * Return the key size, in bytes.
      */
+    #[allow(dead_code)]
     pub fn key_size(&self) -> i32 {
         (self.key.size * 8).try_into().unwrap()
     }
-
 }
