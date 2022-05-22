@@ -1,5 +1,4 @@
 // Benching for base implmentation of ICE
-
 #[macro_use]
 extern crate bencher;
 use bencher::Bencher;

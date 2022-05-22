@@ -1,4 +1,9 @@
 // Benching for base implmentation of ICE
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 #[macro_use]
 extern crate bencher;
 use bencher::Bencher;

@@ -1,6 +1,10 @@
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 pub mod ice;
 pub mod icefast;
-pub mod lib;
 
 use std::env;
 

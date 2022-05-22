@@ -1,4 +1,8 @@
 // Testing for fast implmentation of ICE
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 #[path = "../src/icefast.rs"]
 mod icefast;

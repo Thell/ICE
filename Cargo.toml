@@ -16,6 +16,8 @@ name = "icefast_bench"
 harness = false
 
 [dependencies]
+# Windows alloc is noticably slower than the mimalloc allocator
+mimalloc = { version = "*", default-features = false }
 bencher = "0.1.5"
 rayon = "1.5.2"
 
