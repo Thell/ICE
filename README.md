@@ -1,12 +1,4 @@
-# ~~SIMD~~ Information Concealment Engine
-
-update: I did get the ice_f and salt/mix implmented using u32x4 and u32x8 types
-but my SIMD implmentation was not good and the best I could get was
-just over double the runtime of the baseline implementation, so I will let the
-compiler take care of it. The time overhead of converting into the registers
-and the creation of the intermediate registers absolutely killed the time.
-
-----
+# Information Concealment Engine
 
 This is my attempt at implmenting [ICE][darkside] with SIMD instructions.
 I am specifically aiming at use in decrypting for a specific key using Thin-ICE
@@ -14,14 +6,21 @@ but I don't plan on optimizing the instance creation (sbox lookup table, and
 simd Galois functions) or Thin-ICE itself until I figure out how to get the
 main `ice_f()` loop vectorized.
 
+I did get the ice_f and salt/mix implmented using u32x4 and u32x8 types
+but my SIMD implmentation was not good and the best I could get was
+just over double the runtime of the baseline implementation, so I will let the
+compiler take care of it. The time overhead of converting into the registers
+and the creation of the intermediate registers absolutely killed the time.
+
 * _Level 0 (or Thin-ICE) uses 8 rounds, while higher levels n use 16n rounds._
 
 ## Start
 
-I will be using Matthew's c code as a reference implementation and, hopefully, incrementally adding intrinsics. First, basic optimizations to the rust code
+I will be using Matthew's c code as a reference implementation and, hopefully,
+incrementally adding intrinsics. First, basic optimizations to the rust code
 will be done to make things easier.
 
-Testing is done using a the bytes from from the original c source code for `abcdefgh` at each level.
+Testing is done using bytes from from the original c source code for `abcdefgh` at each level.
 
 ## Notes 1
 
@@ -86,17 +85,23 @@ test encrypt_fast_level2_bench    ... bench:         221 ns/iter (+/- 3)
 Phase 1 Notes:
 
 * The 10k runs are actually 20k bytes (the basic `abcdefgh` * 10k)
-* Notice the decrypt 10k in __Phase 1__. I don't know what is going on there but if I replace the reversed chunk iterator with a regular loop then the timing is `316,777` and `322,384` with and without opts respectively. So my guess is that reversed `chunk_exact` iterators are __not__ treated the same as the forward iterators without compile opts. I took a quick look with Godbolt and it didn't help much in identifying the issue so it might be worth revisiting someday.
+* Notice the decrypt 10k in __Phase 1__. I don't know what is going on there but if I replace
+the reversed chunk iterator with a regular loop then the timing is `316,777` and `322,384` with
+and without opts respectively. So my guess is that reversed `chunk_exact` iterators are __not__
+treated the same as the forward iterators without compile opts.
+I took a quick look with Godbolt and it didn't help much in identifying the issue so it might
+be worth revisiting someday.
 
 ## Notes 2
 
-I've identified where simd optimizations _could_ be made and a couple of places intrinsics _could_ be used but the algo wont work for it because of the loop
-dependencies (that I can see).
+I've identified where simd optimizations _could_ be made and a couple of places intrinsics
+_could_ be used but the algo wont work for it because of the loop dependencies (that I can see).
 
-I did add in a larger chunk handling for 16 bytes as well as a parallel version
-with benchs/tests.
+Added in a larger chunk handling for 16 bytes as well as a parallel version with benchs/tests.
 
 The expanded test cases for the baseline.
+
+__Phase 2__: 16 byte test and bulk test
 
 ```python
 test decrypt_16_level0_bench     ... bench:         271 ns/iter (+/- 30)
@@ -117,7 +122,7 @@ test encrypt_8_level2_bench      ... bench:         243 ns/iter (+/- 4)
 test encrypt_8x10k_level0_bench  ... bench:     399,414 ns/iter (+/- 3,025)
 ```
 
-and for the fast and par versions.
+__Phase 2__: 16 byte test and bulk test for the fast and par versions.
 
 ```python
 running 20 tests
@@ -143,7 +148,7 @@ test encrypt_8x10k_fast_level0_bench      ... bench:     212,656 ns/iter (+/- 27
 test encrypt_8x10k_fast_par_level0_bench  ... bench:      72,282 ns/iter (+/- 4,787)
 ```
 
-Replaced the std allocator with mimalloc for the optimized version which yields
+__Phase 2__: Replaced the std allocator with mimalloc for the optimized version yielding
 a notable improvement on the small tests.
 
 ```python
