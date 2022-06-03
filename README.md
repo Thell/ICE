@@ -1,13 +1,13 @@
 # Information Concealment Engine
 
-This is my attempt at implmenting [ICE][darkside] with SIMD instructions.
+This is my attempt at implementing [ICE][darkside] with SIMD instructions.
 I am specifically aiming at use in decrypting for a specific key using Thin-ICE
 but I don't plan on optimizing the instance creation (sbox lookup table, and
 simd Galois functions) or Thin-ICE itself until I figure out how to get the
 main `ice_f()` loop vectorized.
 
-I did get the ice_f and salt/mix implmented using u32x4 and u32x8 types
-but my SIMD implmentation was not good and the best I could get was
+[update] I did get the ice_f and salt/mix implemented using u32x4 and u32x8 types
+but my SIMD implementation was not good and the best I could get was
 just over double the runtime of the baseline implementation, so I will let the
 compiler take care of it. The time overhead of converting into the registers
 and the creation of the intermediate registers absolutely killed the time.
