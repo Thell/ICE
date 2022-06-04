@@ -596,6 +596,7 @@ impl Ice {
     // /*
     //  * Return the key size, in bytes.
     //  */
+    #[allow(dead_code)]
     pub fn key_size(&self) -> i32 {
         (self.key.size * 8).try_into().unwrap()
     }
