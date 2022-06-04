@@ -3,6 +3,9 @@
 extern crate bencher;
 use bencher::Bencher;
 
+#[path = "../src/ice.rs"]
+mod ice;
+
 static KEY8: [u8; 8] = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 static KEY16: [u8; 16] = [
     0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00, 0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00,
@@ -19,7 +22,7 @@ static CIPHER_TEXT_16_LEVEL2: [u8; 16] = [234, 6, 99, 4, 147, 138, 221, 23, 83, 
 
 
 fn encrypt_8_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     bench.iter(|| {
         let mut ctext = [0; 8];
@@ -38,7 +41,7 @@ fn encrypt_8_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     bench.iter(|| {
         let mut ctext = [0; 8];
@@ -55,7 +58,7 @@ fn decrypt_8_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8_level1_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(1);
+    let mut test_ice = ice::Ice::new(1);
     test_ice.key_set(&KEY8);
 
     bench.iter(|| {
@@ -75,7 +78,7 @@ fn encrypt_8_level1_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8_level1_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(1);
+    let mut test_ice = ice::Ice::new(1);
     test_ice.key_set(&KEY8);
 
     bench.iter(|| {
@@ -93,7 +96,7 @@ fn decrypt_8_level1_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8_level2_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(2);
+    let mut test_ice = ice::Ice::new(2);
     test_ice.key_set(&KEY16);
 
     bench.iter(|| {
@@ -113,7 +116,7 @@ fn encrypt_8_level2_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8_level2_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(2);
+    let mut test_ice = ice::Ice::new(2);
     test_ice.key_set(&KEY16);
 
     bench.iter(|| {
@@ -131,7 +134,7 @@ fn decrypt_8_level2_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8x10k_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     let text10k = EXPECT_TEXT_8.repeat(10000);
     bench.iter(|| {
@@ -151,7 +154,7 @@ fn encrypt_8x10k_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8x10k_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     let text10k = EXPECT_TEXT_8.repeat(10000);
     bench.iter(|| {
@@ -171,7 +174,7 @@ fn decrypt_8x10k_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     bench.iter(|| {
         let mut ctext = [0; 8];
@@ -190,7 +193,7 @@ fn encrypt_16_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     bench.iter(|| {
         let mut ctext = [0; 8];
@@ -207,7 +210,7 @@ fn decrypt_16_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16_level1_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(1);
+    let mut test_ice = ice::Ice::new(1);
     test_ice.key_set(&KEY8);
 
     bench.iter(|| {
@@ -227,7 +230,7 @@ fn encrypt_16_level1_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16_level1_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(1);
+    let mut test_ice = ice::Ice::new(1);
     test_ice.key_set(&KEY8);
 
     bench.iter(|| {
@@ -245,7 +248,7 @@ fn decrypt_16_level1_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16_level2_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(2);
+    let mut test_ice = ice::Ice::new(2);
     test_ice.key_set(&KEY16);
 
     bench.iter(|| {
@@ -265,7 +268,7 @@ fn encrypt_16_level2_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16_level2_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(2);
+    let mut test_ice = ice::Ice::new(2);
     test_ice.key_set(&KEY16);
 
     bench.iter(|| {
@@ -283,7 +286,7 @@ fn decrypt_16_level2_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16x10k_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     let text10k = EXPECT_TEXT_16.repeat(10000);
     bench.iter(|| {
@@ -303,7 +306,7 @@ fn encrypt_16x10k_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16x10k_level0_bench(bench: &mut Bencher) {
-    let mut test_ice = ice::IceKey::new(0);
+    let mut test_ice = ice::Ice::new(0);
     test_ice.key_set(&KEY8);
     let text10k = EXPECT_TEXT_16.repeat(10000);
     bench.iter(|| {

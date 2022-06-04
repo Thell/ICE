@@ -19,7 +19,7 @@ fn main() {
 
     match &test[..] {
         "baseline" => {
-            let mut test_ice = ice::IceKey::new(0);
+            let mut test_ice = ice::Ice::new(0);
             test_ice.key_set(&ice_key);
             let mut ciphertext = Vec::new();
             let mut ctext = [0; 8];
@@ -38,14 +38,14 @@ fn main() {
             assert_eq!(plaintext, text.as_bytes());
         }
         "optimized" => {
-            let test_ice = icefast::IceKey::new(0, &ice_key);
+            let test_ice = icefast::Ice::new(0, &ice_key);
             let mut data = text.as_bytes().to_owned();
             test_ice.encrypt(&mut data);
             test_ice.decrypt(&mut data);
             assert_eq!(data, text.as_bytes());
         }
         "optimized_par" => {
-            let test_ice = icefast::IceKey::new(0, &ice_key);
+            let test_ice = icefast::Ice::new(0, &ice_key);
             let mut data = text.as_bytes().to_owned();
             test_ice.encrypt_par(&mut data);
             test_ice.decrypt_par(&mut data);

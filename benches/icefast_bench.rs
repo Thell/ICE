@@ -32,7 +32,7 @@ static CIPHER_TEXT_16_LEVEL2: [u8; 16] = [
 ];
 
 fn encrypt_8_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let datax = EXPECT_TEXT_8.as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -42,7 +42,7 @@ fn encrypt_8_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     bench.iter(|| {
         let mut data = CIPHER_TEXT_8_LEVEL0.to_owned();
         test_ice.decrypt(&mut data);
@@ -52,7 +52,7 @@ fn decrypt_8_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8_fast_level1_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let datax = EXPECT_TEXT_8.as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -62,7 +62,7 @@ fn encrypt_8_fast_level1_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8_fast_level1_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     bench.iter(|| {
         let mut data = CIPHER_TEXT_8_LEVEL1.to_owned();
         test_ice.decrypt(&mut data);
@@ -72,7 +72,7 @@ fn decrypt_8_fast_level1_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8_fast_level2_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let datax = EXPECT_TEXT_8.as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -82,7 +82,7 @@ fn encrypt_8_fast_level2_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8_fast_level2_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     bench.iter(|| {
         let mut data = CIPHER_TEXT_8_LEVEL2.to_owned();
         test_ice.decrypt(&mut data);
@@ -92,7 +92,7 @@ fn decrypt_8_fast_level2_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8x10k_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let datax = EXPECT_TEXT_8.repeat(10000).as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -102,7 +102,7 @@ fn encrypt_8x10k_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_8x10k_fast_par_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let datax = EXPECT_TEXT_8.repeat(10000).as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -112,7 +112,7 @@ fn encrypt_8x10k_fast_par_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8x10k_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let expect_text = EXPECT_TEXT_8.repeat(10000).as_bytes().to_owned();
     let mut cipher_text = expect_text.clone();
     test_ice.encrypt(&mut cipher_text);
@@ -124,7 +124,7 @@ fn decrypt_8x10k_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_8x10k_fast_par_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let expect_text = EXPECT_TEXT_8.repeat(10000).as_bytes().to_owned();
     let mut cipher_text = expect_text.clone();
     test_ice.encrypt(&mut cipher_text);
@@ -136,7 +136,7 @@ fn decrypt_8x10k_fast_par_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let datax = EXPECT_TEXT_16.as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -146,7 +146,7 @@ fn encrypt_16_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     bench.iter(|| {
         let mut data = CIPHER_TEXT_16_LEVEL0.to_owned();
         test_ice.decrypt(&mut data);
@@ -156,7 +156,7 @@ fn decrypt_16_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16_fast_level1_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let datax = EXPECT_TEXT_16.as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -166,7 +166,7 @@ fn encrypt_16_fast_level1_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16_fast_level1_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     bench.iter(|| {
         let mut data = CIPHER_TEXT_16_LEVEL1.to_owned();
         test_ice.decrypt(&mut data);
@@ -176,7 +176,7 @@ fn decrypt_16_fast_level1_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16_fast_level2_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let datax = EXPECT_TEXT_16.as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -186,7 +186,7 @@ fn encrypt_16_fast_level2_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16_fast_level2_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     bench.iter(|| {
         let mut data = CIPHER_TEXT_16_LEVEL2.to_owned();
         test_ice.decrypt(&mut data);
@@ -196,7 +196,7 @@ fn decrypt_16_fast_level2_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16x10k_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let datax = EXPECT_TEXT_16.repeat(10000).as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -206,7 +206,7 @@ fn encrypt_16x10k_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn encrypt_16x10k_fast_par_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let datax = EXPECT_TEXT_16.repeat(10000).as_bytes().to_owned();
     bench.iter(|| {
         let mut data = datax.clone();
@@ -216,7 +216,7 @@ fn encrypt_16x10k_fast_par_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16x10k_fast_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let expect_text = EXPECT_TEXT_16.repeat(10000).as_bytes().to_owned();
     let mut cipher_text = expect_text.clone();
     test_ice.encrypt(&mut cipher_text);
@@ -228,7 +228,7 @@ fn decrypt_16x10k_fast_level0_bench(bench: &mut Bencher) {
 }
 
 fn decrypt_16x10k_fast_par_level0_bench(bench: &mut Bencher) {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let expect_text = EXPECT_TEXT_16.repeat(10000).as_bytes().to_owned();
     let mut cipher_text = expect_text.clone();
     test_ice.encrypt(&mut cipher_text);

@@ -1,11 +1,14 @@
 // Testing for base implmentation of ICE
 
+#[path = "../src/ice.rs"]
+mod ice;
+
 #[test]
 fn encrypt_level0() {
     let ice_level = 0;
     let ice_key = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 
-    let mut test_ice = ice::IceKey::new(ice_level);
+    let mut test_ice = ice::Ice::new(ice_level);
     test_ice.key_set(&ice_key);
 
     let expect_text: String = "abcdefgh".to_string();
@@ -26,7 +29,7 @@ fn decrypt_level0() {
     let ice_level = 0;
     let ice_key = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 
-    let mut test_ice = ice::IceKey::new(ice_level);
+    let mut test_ice = ice::Ice::new(ice_level);
     test_ice.key_set(&ice_key);
 
     let expect_text: String = "abcdefgh".to_string();
@@ -49,7 +52,7 @@ fn encrypt_level1() {
     let ice_level = 1;
     let ice_key = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 
-    let mut test_ice = ice::IceKey::new(ice_level);
+    let mut test_ice = ice::Ice::new(ice_level);
     test_ice.key_set(&ice_key);
 
     let expect_text: String = "abcdefgh".to_string();
@@ -70,7 +73,7 @@ fn decrypt_level1() {
     let ice_level = 1;
     let ice_key = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 
-    let mut test_ice = ice::IceKey::new(ice_level);
+    let mut test_ice = ice::Ice::new(ice_level);
     test_ice.key_set(&ice_key);
 
     let expect_text: String = "abcdefgh".to_string();
@@ -93,7 +96,7 @@ fn encrypt_level2() {
     let ice_level = 2;
     let ice_key = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00, 0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 
-    let mut test_ice = ice::IceKey::new(ice_level);
+    let mut test_ice = ice::Ice::new(ice_level);
     test_ice.key_set(&ice_key);
 
     let expect_text: String = "abcdefgh".to_string();
@@ -114,7 +117,7 @@ fn decrypt_level2() {
     let ice_level = 2;
     let ice_key = [0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00, 0x51, 0xF3, 0x0F, 0x11, 0x04, 0x24, 0x6A, 0x00];
 
-    let mut test_ice = ice::IceKey::new(ice_level);
+    let mut test_ice = ice::Ice::new(ice_level);
     test_ice.key_set(&ice_key);
 
     let expect_text: String = "abcdefgh".to_string();

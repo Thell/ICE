@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "ice"
-path = "src/ice.rs"
+path = "src/lib.rs"
 
 [[bench]]
 name = "ice_bench"

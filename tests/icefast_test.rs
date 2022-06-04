@@ -29,7 +29,7 @@ static CIPHER_TEXT_16_LEVEL2: [u8; 16] = [
 
 #[test]
 fn encrypt_8_fast_level0() {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let mut data = EXPECT_TEXT_8.as_bytes().to_owned();
     test_ice.encrypt(&mut data);
     assert_eq!(data, CIPHER_TEXT_8_LEVEL0);
@@ -37,7 +37,7 @@ fn encrypt_8_fast_level0() {
 
 #[test]
 fn decrypt_8_fast_level0() {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let mut data = CIPHER_TEXT_8_LEVEL0.to_owned();
     test_ice.decrypt(&mut data);
     let plaintext = String::from_utf8(data.to_vec()).unwrap();
@@ -46,7 +46,7 @@ fn decrypt_8_fast_level0() {
 
 #[test]
 fn encrypt_8_fast_level1() {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let mut data = EXPECT_TEXT_8.as_bytes().to_owned();
     test_ice.encrypt(&mut data);
     assert_eq!(data, CIPHER_TEXT_8_LEVEL1);
@@ -54,7 +54,7 @@ fn encrypt_8_fast_level1() {
 
 #[test]
 fn decrypt_8_fast_level1() {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let mut data = CIPHER_TEXT_8_LEVEL1.to_owned();
     test_ice.decrypt(&mut data);
     assert_eq!(data, EXPECT_TEXT_8.as_bytes());
@@ -64,7 +64,7 @@ fn decrypt_8_fast_level1() {
 
 #[test]
 fn encrypt_8_fast_level2() {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let mut data = EXPECT_TEXT_8.as_bytes().to_owned();
     test_ice.encrypt(&mut data);
     assert_eq!(data, CIPHER_TEXT_8_LEVEL2);
@@ -72,7 +72,7 @@ fn encrypt_8_fast_level2() {
 
 #[test]
 fn decrypt_8_fast_level2() {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let mut data = CIPHER_TEXT_8_LEVEL2.to_owned();
     test_ice.decrypt(&mut data);
     let plaintext = String::from_utf8(data.to_vec()).unwrap();
@@ -81,7 +81,7 @@ fn decrypt_8_fast_level2() {
 
 #[test]
 fn encrypt_16_fast_level0() {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let mut data = EXPECT_TEXT_16.as_bytes().to_owned();
     test_ice.encrypt(&mut data);
     assert_eq!(data, CIPHER_TEXT_16_LEVEL0);
@@ -89,7 +89,7 @@ fn encrypt_16_fast_level0() {
 
 #[test]
 fn decrypt_16_fast_level0() {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let mut data = CIPHER_TEXT_16_LEVEL0.to_owned();
     test_ice.decrypt(&mut data);
     let plaintext = String::from_utf8(data.to_vec()).unwrap();
@@ -98,7 +98,7 @@ fn decrypt_16_fast_level0() {
 
 #[test]
 fn encrypt_16_fast_level1() {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let mut data = EXPECT_TEXT_16.as_bytes().to_owned();
     test_ice.encrypt(&mut data);
     assert_eq!(data, CIPHER_TEXT_16_LEVEL1);
@@ -106,7 +106,7 @@ fn encrypt_16_fast_level1() {
 
 #[test]
 fn decrypt_16_fast_level1() {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let mut data = CIPHER_TEXT_16_LEVEL1.to_owned();
     test_ice.decrypt(&mut data);
     assert_eq!(data, EXPECT_TEXT_16.as_bytes());
@@ -116,7 +116,7 @@ fn decrypt_16_fast_level1() {
 
 #[test]
 fn encrypt_16_fast_level2() {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let mut data = EXPECT_TEXT_16.as_bytes().to_owned();
     test_ice.encrypt(&mut data);
     assert_eq!(data, CIPHER_TEXT_16_LEVEL2);
@@ -124,7 +124,7 @@ fn encrypt_16_fast_level2() {
 
 #[test]
 fn decrypt_16_fast_level2() {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let mut data = CIPHER_TEXT_16_LEVEL2.to_owned();
     test_ice.decrypt(&mut data);
     let plaintext = String::from_utf8(data.to_vec()).unwrap();
@@ -133,7 +133,7 @@ fn decrypt_16_fast_level2() {
 
 #[test]
 fn decrypt_16_fast_par_level0() {
-    let test_ice = icefast::IceKey::new(0, &KEY8);
+    let test_ice = icefast::Ice::new(0, &KEY8);
     let mut data = CIPHER_TEXT_16_LEVEL0.to_owned();
     test_ice.decrypt_par(&mut data);
     let plaintext = String::from_utf8(data.to_vec()).unwrap();
@@ -142,7 +142,7 @@ fn decrypt_16_fast_par_level0() {
 
 #[test]
 fn encrypt_16_fast_par_level1() {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let mut data = EXPECT_TEXT_16.as_bytes().to_owned();
     test_ice.encrypt_par(&mut data);
     assert_eq!(data, CIPHER_TEXT_16_LEVEL1);
@@ -150,7 +150,7 @@ fn encrypt_16_fast_par_level1() {
 
 #[test]
 fn decrypt_16_fast_par_level1() {
-    let test_ice = icefast::IceKey::new(1, &KEY8);
+    let test_ice = icefast::Ice::new(1, &KEY8);
     let mut data = CIPHER_TEXT_16_LEVEL1.to_owned();
     test_ice.decrypt_par(&mut data);
     assert_eq!(data, EXPECT_TEXT_16.as_bytes());
@@ -160,7 +160,7 @@ fn decrypt_16_fast_par_level1() {
 
 #[test]
 fn encrypt_16_fast_par_level2() {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let mut data = EXPECT_TEXT_16.as_bytes().to_owned();
     test_ice.encrypt_par(&mut data);
     assert_eq!(data, CIPHER_TEXT_16_LEVEL2);
@@ -168,7 +168,7 @@ fn encrypt_16_fast_par_level2() {
 
 #[test]
 fn decrypt_16_fast_par_level2() {
-    let test_ice = icefast::IceKey::new(2, &KEY16);
+    let test_ice = icefast::Ice::new(2, &KEY16);
     let mut data = CIPHER_TEXT_16_LEVEL2.to_owned();
     test_ice.decrypt_par(&mut data);
     let plaintext = String::from_utf8(data.to_vec()).unwrap();

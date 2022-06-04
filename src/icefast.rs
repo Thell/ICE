@@ -14,7 +14,7 @@ pub struct IceKeyStruct {
 }
 
 #[warn(dead_code)]
-pub struct IceKey {
+pub struct Ice {
     // typedef struct ice_key_struct	ICE_KEY;
     pub key: IceKeyStruct,
     // /* The S-boxes */
@@ -100,7 +100,7 @@ fn ice_perm32(mut x: u32) -> u32 {
     res
 }
 
-impl IceKey {
+impl Ice {
     /*
      * Initialise the ICE S-boxes.
      * This only has to be done once.
@@ -140,7 +140,7 @@ impl IceKey {
     /// * `level` - The level of the ICE (0-2)
     /// * `key` - The key to use
     pub fn new(level: usize, key: &[u8]) -> Self {
-        let mut ik = IceKey {
+        let mut ik = Ice {
             key: IceKeyStruct {
                 size: 0,
                 rounds: 0,
