@@ -1,12 +1,13 @@
 use rayon::prelude::*;
 
 /* Structure of a single round subkey */
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct IceSubkey {
     val: [u32; 3],
 }
 
 /* Internal structure of the ICE_KEY structure */
+#[derive(Clone, Debug)]
 pub struct IceKeyStruct {
     size: usize,
     rounds: usize,
@@ -14,6 +15,7 @@ pub struct IceKeyStruct {
 }
 
 #[warn(dead_code)]
+#[derive(Clone, Debug)]
 pub struct Ice {
     // typedef struct ice_key_struct	ICE_KEY;
     pub key: IceKeyStruct,
